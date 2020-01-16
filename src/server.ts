@@ -2,7 +2,6 @@ import {
     createConnection,
     ProposedFeatures,
     TextDocuments,
-    InitializeParams,
     TextDocument,
     Diagnostic,
     DiagnosticSeverity,
@@ -15,15 +14,17 @@ import * as jsonToAst from "json-to-ast";
 
 import { ExampleConfiguration, Severity, RuleKeys } from './configuration';
 import { makeLint, LinterProblem } from './linter';
+import '../lint/lint';
+
 
 let conn = createConnection(ProposedFeatures.all);
-let docs = new TextDocuments();
+let docs: TextDocuments = new TextDocuments();
 let conf: ExampleConfiguration | undefined = undefined;
 
-conn.onInitialize((params: InitializeParams) => {
+conn.onInitialize(() => {
     return {
         capabilities: {
-            textDocumentSync: 'always'
+            textDocumentSync: docs.syncKind
         }
     };
 });
@@ -33,11 +34,12 @@ function GetSeverity(key: RuleKeys): DiagnosticSeverity | undefined {
         return undefined;
     }
 
+    
     const severity: Severity = conf.severity[key];
 
     switch (severity) {
         case Severity.Error:
-            return DiagnosticSeverity.Information;
+            return DiagnosticSeverity.Error;
         case Severity.Warning:
             return DiagnosticSeverity.Warning;
         case Severity.Information:
@@ -63,7 +65,7 @@ function GetMessage(key: RuleKeys): string {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     const source = basename(textDocument.uri);
-    const json = textDocument.uri;
+    const json = textDocument.getText();
 
     const validateObject = (
         obj: jsonToAst.AstObject
@@ -79,7 +81,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
             ? [
                   {
                       key: RuleKeys.UppercaseNamesIsForbidden,
-                      loc: property.key.loc
+                      loc: property.loc
                   }
               ]
             : [];
@@ -117,9 +119,36 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         },
         []
     );
+    
+    // @ts-ignore
+    const diagnosticsLint: Diagnostic[] = lint(json).reduce(
+        (
+            list: Diagnostic[],
+            problem: any
+        ): Diagnostic[] => {
 
-    if (diagnostics.length) {
-        conn.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        const startOffset = textDocument.offsetAt({line: problem.location.start.line, character: problem.location.start.column});
+        const endOffset = textDocument.offsetAt({line: problem.location.end.line, character: problem.location.end.column});
+
+        let diagnostic: Diagnostic = {
+            range: {
+                start: textDocument.positionAt(startOffset),
+                end: textDocument.positionAt(endOffset)
+            },
+            severity: DiagnosticSeverity.Error,
+            message: problem.error,
+            source
+        };
+
+        list.push(diagnostic);
+
+            return list;
+    },[]);
+
+    const errors: Diagnostic[] = [...diagnostics, ...diagnosticsLint];
+
+    if (errors.length) {
+        conn.sendDiagnostics({ uri: textDocument.uri, diagnostics: errors });
     }
 }
 

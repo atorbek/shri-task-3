@@ -34,7 +34,7 @@ export function makeLint<TProblemKey>(
                 break;
         }
     }
-
+    
     function parseJson(json: string):JsonAST  {return jsonToAst(json); }
 
     const errors: LinterProblem<TProblemKey>[] = [];
@@ -42,8 +42,8 @@ export function makeLint<TProblemKey>(
 
     if (ast) {
         walk(ast, 
-            (property: jsonToAst.AstProperty) => errors.concat(...validateProperty(property)), 
-            (obj: jsonToAst.AstObject) => errors.concat(...validateObject(obj)));
+            (property: jsonToAst.AstProperty) => errors.push(...validateProperty(property)), 
+            (obj: jsonToAst.AstObject) => errors.push(...validateObject(obj)));
     }
 
     return errors;

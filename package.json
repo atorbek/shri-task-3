@@ -3,6 +3,11 @@
 	"displayName": "shri-ext",
 	"description": "The entrance task of Yandex Web Development School.",
 	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/atorbek/shri-task-3"
+	},
+	"license": "BSD-3-Clause",
 	"engines": {
 		"vscode": "^1.40.0"
 	},

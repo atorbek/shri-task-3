@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
+        <meta http-equiv="Content-Security-Policy" content="default-src vscode-resource:; img-src vscode-resource: https:; script-src vscode-resource:; style-src vscode-resource:;"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <base href="{{mediaPath}}">
         <link rel="stylesheet" href="./preview/style.css" />
@@ -9,4 +10,5 @@
     <body>
         {{content}}
     </body>
+    <script type="text/javascript" src="./preview/script.js"></script>
 </html>
