@@ -147,10 +147,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
     const errors: Diagnostic[] = [...diagnostics, ...diagnosticsLint];
 
-    if (errors.length) {
-        conn.sendDiagnostics({ uri: textDocument.uri, diagnostics: errors });
-    }
+    conn.sendDiagnostics({ uri: textDocument.uri, diagnostics: errors });
 }
+
 
 async function validateAll() {
     for (const document of docs.all()) {
@@ -160,6 +159,10 @@ async function validateAll() {
 
 docs.onDidChangeContent(change => {
     validateTextDocument(change.document);
+});
+
+docs.onDidClose(change => {
+    conn.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
 
 conn.onDidChangeConfiguration(({ settings }: DidChangeConfigurationParams) => {

@@ -98,7 +98,7 @@ const updateContent = (doc: vscode.TextDocument, context: vscode.ExtensionContex
                     }
                 });
         } catch(e) {
-            panel.webview.html = e.message;
+            panel.webview.html = "Что-то пошло не так.. Ошибка!";
         }
     }
 };

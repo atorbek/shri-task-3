@@ -199,10 +199,21 @@ walk(ast,
 
 Подключил линтер из 2-го задания.
 
+После исправления последней ошибки в `json`, линтер все еще ее подсвечивает. Исправил удалением условия `if (errors.length) { }` в методе `validateTextDocument`. Теперь метод `sendDiagnostics`, вызывается даже, когда массив `errors` пустой.
+
+Заметил, что после закрытия json-файла c ошибками на вкладке `PROBLEMS` остаются ошибки закрытого файла. Сравнил с линтером `tslint`. В `tslint` после закрытия файла с ошибками - ошибки пропадают, поэтому добавил код, который очищает `PROBLEMS`
+после закрытия json-файла с ошибками:
+
+```ts
+docs.onDidClose(change => {
+    conn.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
+});
+```
+
 Внес дополнительные правки:
 
 - В событии `onInitialize` удалил неиспользуемый параметр `params: InitializeParams`;
 - Добавил переменной `docs` тип `TextDocuments`;
 - В методе `GetSeverity` в `case Severity.Error` поправил `DiagnosticSeverity.Information` на `DiagnosticSeverity.Error`;
-- Обработал ситуацию, когда приходит невалидный JSON в методе `updateContent`, пробросил ошибку в `panel.webview.html`;
+- В методе `updateContent`, пробросил ошибку в `panel.webview.html`;
 - Удалил неиспользуемый импорт `DocumentColorRequest`.
